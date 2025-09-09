@@ -45,16 +45,22 @@ def predict(features: HouseFeatures):
             features.location
         ]
     }
-
     try:
-        # Note: Hugging Face Spaces API endpoint usually needs "/run/predict"
-        # Double check this from your HF Space's API page.
         response = requests.post(f"{HF_API_URL}/run/predict", json=payload)
-        response.raise_for_status() # Ye line add karna accha hai, error check ke liye
+        response.raise_for_status()
         result = response.json()
-        return {"prediction": result.get("data", [])[0]}
+        
+        # --- BEHTAR CHECK YAHAN ADD KIYA HAI ---
+        prediction_data = result.get("data")
+        
+        if prediction_data and len(prediction_data) > 0:
+            # Agar data list mein kuch hai, to pehla item bhejo
+            return {"prediction": prediction_data[0]}
+        else:
+            # Agar HF se data nahi aaya ya khaali list aayi
+            return {"error": f"No data received from Hugging Face. API Response: {result}"}
+
     except requests.exceptions.RequestException as e:
-        # Better error handling for network issues
         return {"error": f"Error calling Hugging Face API: {e}"}
     except Exception as e:
         return {"error": str(e)}
