@@ -46,7 +46,7 @@ def predict(features: HouseFeatures):
         ]
     }
     try:
-        response = requests.post(f"{HF_API_URL}/run/predict", json=payload)
+        response = requests.post(f"{HF_API_URL}/predict_price", json=payload)
         response.raise_for_status()
         result = response.json()
         
