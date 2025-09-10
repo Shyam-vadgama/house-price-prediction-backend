@@ -59,7 +59,7 @@ def predict(features: HouseFeatures):
 
     try:
         # URL mein ab "/run/predict" use karna hai
-        response = requests.post(f"{HF_API_URL}/run/predict", json=payload)
+        response = requests.post(f"{HF_API_URL}/api/predict", json=payload)
         response.raise_for_status()
         result = response.json()
         
