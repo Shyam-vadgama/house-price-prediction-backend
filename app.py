@@ -14,7 +14,7 @@ app.add_middleware(
 )
 
 # Replace with your Hugging Face Space URL
-HF_API_URL = "https://huggingface.co/spaces/s-h-y-a-m-123/housing-price-predictor"
+HF_API_URL = "https://s-h-y-a-m-123-housing-price-predictor.hf.space"
 
 # 1. Pydantic Model ko 12 parameters ke saath update kiya
 class HouseFeatures(BaseModel):
