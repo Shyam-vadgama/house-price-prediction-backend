@@ -38,7 +38,7 @@ def root():
 @app.post("/predict")
 def predict(features: HouseFeatures):
     
-    # 2. Payload ko 12 parameters ke saath sahi order mein banaya
+    # Payload mein ab "api_name" bhi add karna hai
     payload = {
         "data": [
             features.area,
@@ -53,12 +53,13 @@ def predict(features: HouseFeatures):
             features.parking,
             features.prefarea,
             features.furnishingstatus
-        ]
+        ],
+        "api_name": "/predict_price"  # <-- YEH SABSE IMPORTANT CHANGE HAI
     }
 
     try:
-        # API endpoint /predict_price hai
-        response = requests.post(f"{HF_API_URL}/predict_price", json=payload)
+        # URL mein ab "/run/predict" use karna hai
+        response = requests.post(f"{HF_API_URL}/run/predict", json=payload)
         response.raise_for_status()
         result = response.json()
         
@@ -69,4 +70,5 @@ def predict(features: HouseFeatures):
             return {"error": f"No data received from HF. Response: {result}"}
             
     except Exception as e:
+        # Return the actual error from Hugging Face for better debugging
         return {"error": str(e)}
