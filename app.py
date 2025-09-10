@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import requests
 from fastapi.middleware.cors import CORSMiddleware
+from gradio_client import Client, exceptions  # <-- `Client` ko import karo
 
 app = FastAPI()
 
@@ -13,10 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Replace with your Hugging Face Space URL
-HF_API_URL = "https://s-h-y-a-m-123-housing-price-predictor.hf.space"
-
-# 1. Pydantic Model ko 12 parameters ke saath update kiya
+# Pydantic Model ko 12 parameters ke saath update kiya
 class HouseFeatures(BaseModel):
     area: float
     bedrooms: int
@@ -37,36 +34,35 @@ def root():
 
 @app.post("/predict")
 def predict(features: HouseFeatures):
-    
-    # Payload mein ab "api_name" nahi hoga
-    payload = {
-      "data": [
-        features.area,
-        features.bedrooms,
-        features.bathrooms,
-        features.stories,
-        features.mainroad,
-        features.guestroom,
-        features.basement,
-        features.hotwaterheating,
-        features.airconditioning,
-        features.parking,
-        features.prefarea,
-        features.furnishingstatus
-      ]
-    }
-
     try:
-        # URL mein ab seedha API ka naam aayega
-        response = requests.post(f"{HF_API_URL}/predict_price", json=payload)
-        response.raise_for_status()
-        result = response.json()
+        # 1. Gradio client initialize karo
+        #    Yeh Space ID "s-h-y-a-m-123/housing-price-predictor" se connect karega
+        client = Client("s-h-y-a-m-123/housing-price-predictor")
         
-        prediction_data = result.get("data")
-        if prediction_data and len(prediction_data) > 0:
-            return {"prediction": prediction_data[0]}
-        else:
-            return {"error": f"No data received from HF. Response: {result}"}
-            
+        # 2. Predict function call karo, bilkul simple tarike se
+        #    Yeh saara queue aur session ka kaam automatically handle karega
+        result = client.predict(
+            area=features.area,
+            bedrooms=features.bedrooms,
+            bathrooms=features.bathrooms,
+            stories=features.stories,
+            mainroad=features.mainroad,
+            guestroom=features.guestroom,
+            basement=features.basement,
+            hotwaterheating=features.hotwaterheating,
+            airconditioning=features.airconditioning,
+            parking=features.parking,
+            prefarea=features.prefarea,
+            furnishingstatus=features.furnishingstatus,
+            api_name="/predict_price"  # API ka naam batana zaroori hai
+        )
+        
+        # 3. Prediction result bhejo
+        return {"prediction": result}
+
+    except exceptions.AppError as e:
+        # Gradio se aane wale specific errors ko handle karo
+        return {"error": f"Gradio App Error: {e}"}
     except Exception as e:
+        # Baaki saare errors (jaise network issue) yahan handle honge
         return {"error": str(e)}
